@@ -9,10 +9,13 @@ import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.telephony.TelephonyManager;
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by zanexu on 2017/7/7.
@@ -20,24 +23,20 @@ import java.io.IOException;
 
 public final class Utils {
 
-//    private static long lastClickTime;
-//    private final static int SPACE_TIME = 500;
-//
-//    public static void initLastClickTime() {
-//        lastClickTime = 0;
-//    }
-//
-//    public synchronized static boolean isDoubleClick() {
-//        long currentTime = System.currentTimeMillis();
-//        boolean isClick;
-//        if (currentTime - lastClickTime > SPACE_TIME) {
-//            isClick = false;
-//        } else {
-//            isClick = true;
-//        }
-//        lastClickTime = currentTime;
-//        return isClick;
-//    }
+    /**
+     * 判断是否是QQ号
+     * @param qqorwx
+     * @return
+     */
+   public static boolean isQQOrWX(String qqorwx) {
+        if(TextUtils.isEmpty(qqorwx)){
+            return false;
+        }
+        //QQ号最短5位，微信号最短是6位最长20位
+        Pattern p = Pattern.compile("^[a-zA-Z0-9_-]{5,19}$");
+        Matcher m = p.matcher(qqorwx);
+        return m.matches();
+    }
 
     /**
      * 是否有网

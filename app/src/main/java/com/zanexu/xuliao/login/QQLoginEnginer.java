@@ -34,6 +34,7 @@ public class QQLoginEnginer {
     }
 
     public void QQLogin() {
+        Log.i("testQQ", "login");
         mTencent.login(activity, "all", listener);
     }
 
@@ -66,7 +67,6 @@ public class QQLoginEnginer {
                         .append(openidString)
                         .append("&format=json");
 
-                //judgeFirstLogin(openidString);
 
                 //fetch the QQ user info and pass the request chain to Talk module
                 connectEnginer.connect(activity, fetchQQUserInfo(sb.toString()), openidString);
@@ -85,6 +85,7 @@ public class QQLoginEnginer {
         }
 
         private Observable<JSONObject> fetchQQUserInfo(String url) {
+            Log.i("testUrl", url);
             return Observable.create(subscriber -> {
                 try {
                     JSONObject jsonObject = mTencent.request(url, null, Constants.HTTP_GET);
@@ -95,33 +96,6 @@ public class QQLoginEnginer {
                 }
             });
         }
-
-//        /**
-//         * judge the user is the first time to login our self server or not
-//         * @param openId
-//         */
-//        private Observable<FirstLoginBean> judgeFirstLogin(String openId) {
-//            return Observable.create(subscriber -> {
-//                FirstLoginBean firstLoginBean = FirstLoginModel.getInstance().judgeFirstLogin(openId)
-//            })
-//            if (true) {
-//                activity.startActivity(new Intent(activity, MainWebActivity.class));
-//            } else {
-//                activity.startActivity(new Intent(activity, LabelTalkWebActivity.class));
-//            }
-//            activity.finish();
-//            FirstLoginModel.getInstance().judgeFirstLogin(openId)
-//                    .subscribe(firstLoginBean -> {
-//                        boolean isFirstLogin = firstLoginBean.getData().isFirstLogin();
-//                        MySharedPre.getInstance().setIsFirstLogin(firstLoginBean.getData().isFirstLogin());
-//                        Log.i("testLogin", "intent");
-//                        if (isFirstLogin) {
-//                            activity.startActivity(new Intent(activity, MainWebActivity.class));
-//                        } else {
-//                            activity.startActivity(new Intent(activity, LabelTalkWebActivity.class));
-//                        }
-//                        activity.finish();
-//                    });
 
     }
 }

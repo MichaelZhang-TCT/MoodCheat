@@ -158,4 +158,17 @@ public class MySharedPre {
     public String getOpenId() {
         return preferences.getString("openId", "");
     }
+
+    /**
+     * token
+     * @param token
+     */
+    public void setToken(String token) {
+        editor.putString("token", token);
+        editor.commit();
+    }
+
+    public String getToken() {
+        return preferences.getString("token", "");
+    }
 }

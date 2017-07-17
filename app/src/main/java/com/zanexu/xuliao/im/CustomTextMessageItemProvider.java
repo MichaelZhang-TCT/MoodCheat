@@ -11,4 +11,5 @@ import io.rong.message.TextMessage;
 
 @ProviderTag(messageContent = TextMessage.class, showSummaryWithName = false)
 public class CustomTextMessageItemProvider extends TextMessageItemProvider {
+
 }

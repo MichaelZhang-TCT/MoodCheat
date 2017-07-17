@@ -10,9 +10,11 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.zanexu.xuliao.R;
 import com.zanexu.xuliao.data.remote.im.GiftBean;
@@ -30,6 +32,7 @@ import io.rong.imkit.RongIM;
 import io.rong.imkit.fragment.ConversationFragment;
 import io.rong.imlib.RongIMClient;
 import io.rong.imlib.model.Conversation;
+import io.rong.imlib.model.UserInfo;
 import rx.Observable;
 import rx.Subscriber;
 import rx.Subscription;
@@ -42,6 +45,8 @@ import rx.android.schedulers.AndroidSchedulers;
 public class CheatActivity extends AppCompatActivity {
 
     private static final long POLL_INTERVAL = 1000;
+    private static final long GIFT_TIME = 60000;
+    private static final long LIKE_TIME = 300000;
     public static final String GRADE_PAPRAM = "grade_param";
 
     private String title;
@@ -54,12 +59,14 @@ public class CheatActivity extends AppCompatActivity {
     private ImageView imgGift;
     private ImageView imgGiftMove;
 
+    private ImageView imgSendLove;
     private ImageView imgSendGift;
     private TextView textGiftCount;
 
     private Calendar calendar = Calendar.getInstance();
-    private long allTime = 1000000;
+    private long allTime = 300000;
     private Subscription subscription;
+    private Subscription pollSubscription;
     private boolean isLikePeer = false;
     private boolean ispeerLike = false;
     private int giftCount = 0;
@@ -68,13 +75,12 @@ public class CheatActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cheat);
-        initView();
 
         targetId = getIntent().getData().getQueryParameter("targetId");
-        Log.i("testId", targetId + " " + MySharedPre.getInstance().getOpenId());
         title = getIntent().getData().getQueryParameter("title");
         type = Conversation.ConversationType.valueOf(getIntent().getData().getLastPathSegment().toUpperCase(Locale.getDefault()));
 
+        initView();
         initFragment();
         pollingLikeGift();
     }
@@ -83,8 +89,7 @@ public class CheatActivity extends AppCompatActivity {
         toolbar = (Toolbar) findViewById(R.id.toolbar_cheat);
         toolbar.setTitle(title);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        toolbar.setNavigationOnClickListener(view -> finish());
+        //getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         textTime = (TextView) findViewById(R.id.text_time);
         imgLove = (ImageView) findViewById(R.id.img_talk_love);
@@ -96,13 +101,14 @@ public class CheatActivity extends AppCompatActivity {
         imgGift = (ImageView) findViewById(R.id.img_talk_gift);
         imgGiftMove = (ImageView) findViewById(R.id.img_talk_move_gift);
         imgGift.setOnClickListener(v -> sendGift());
-
-        imgSendGift = (ImageView) findViewById(R.id.img_gift_send);
+//
+        imgSendGift = (ImageView) findViewById(R.id.img_like_send);
         textGiftCount = (TextView) findViewById(R.id.text_gift_count);
+
+        imgSendLove = (ImageView) findViewById(R.id.img_like_send);
     }
 
     private void sendGift() {
-
         GiftModel.getInstance().sendGift(MySharedPre.getInstance().getOpenId(), targetId)
                 .subscribe(new Subscriber<GiftBean>() {
                     @Override
@@ -115,13 +121,17 @@ public class CheatActivity extends AppCompatActivity {
 
                     @Override
                     public void onNext(GiftBean giftBean) {
-                        startGiftAnim();
+                        if (giftBean.getStatus() == 200) {
+                            startGiftAnim();
+                            startTextAnim();
+                            allTime += GIFT_TIME;
+                            restartCountDown();
+                        }
                     }
                 });
     }
 
     private void likePeer() {
-        Log.i("openid", MySharedPre.getInstance().getOpenId());
         LikeModel.getInstance().likePeer(MySharedPre.getInstance().getOpenId(), targetId)
                 .subscribe(new Subscriber<LikePeerBean>() {
                     @Override
@@ -137,7 +147,6 @@ public class CheatActivity extends AppCompatActivity {
                     public void onNext(LikePeerBean likePeerBean) {
                         if (likePeerBean.getStatus() == 200) {
                             isLikePeer = true;
-                            startLikeAnim();
                             imgLove.setEnabled(false);
                             imgLove.setImageDrawable(getResources().getDrawable(R.drawable.love_1));
                         }
@@ -149,22 +158,34 @@ public class CheatActivity extends AppCompatActivity {
         String openId = MySharedPre.getInstance().getOpenId();
         imgSendGift.setVisibility(View.GONE);
         textGiftCount.setVisibility(View.GONE);
-        Observable.interval(POLL_INTERVAL, TimeUnit.MILLISECONDS)
+        imgSendLove.setVisibility(View.GONE);
+
+        pollSubscription = Observable.interval(POLL_INTERVAL, TimeUnit.MILLISECONDS)
                 .flatMap(aLong -> LikeModel.getInstance().peerLike(openId, targetId))
                 .subscribe(peerLikeBean -> {
-                    if (peerLikeBean.isIsliked()) {
+                    Log.i("poll", peerLikeBean.getData().isIslike() + " " + isLikePeer);
+                    if (peerLikeBean.getData().isIslike()) {
                         ispeerLike = true;
-                        if (isLikePeer && ispeerLike) {
-                            allTime += 300000;
-                            restartCountDown();
-                        }
                     }
-                    int moreGiftCount = peerLikeBean.getGiftCount() - giftCount;
+
+                    if (ispeerLike && isLikePeer) {
+                        startLikeAnim();
+                        startTextAnim();
+
+                        ispeerLike = false;
+                        allTime += LIKE_TIME;
+                        restartCountDown();
+                        Toast.makeText(this, "恭喜你~双方点赞了～", Toast.LENGTH_SHORT).show();
+                    }
+
+                    int moreGiftCount = peerLikeBean.getData().getGiftcount();
                     if (moreGiftCount > 0) {
-                        giftCount = peerLikeBean.getGiftCount();
-                        imgSendGift.setVisibility(View.VISIBLE);
-                        textGiftCount.setVisibility(View.VISIBLE);
-                        textGiftCount.setText("X " + moreGiftCount);
+                        Toast.makeText(this, "对方给你送了 " + moreGiftCount + " 个礼物～", Toast.LENGTH_SHORT).show();
+                        giftCount += peerLikeBean.getData().getGiftcount();
+
+                        startTextAnim();
+                        allTime += GIFT_TIME * moreGiftCount;
+                        restartCountDown();
                     }
                 });
     }
@@ -193,6 +214,28 @@ public class CheatActivity extends AppCompatActivity {
     }
 
     private void startLikeAnim() {
+        ObjectAnimator loveAnimator = ObjectAnimator.ofFloat(imgLoveMove, "translationX", 0f, -150f);
+        loveAnimator.setDuration(500);
+        loveAnimator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animator) {
+                imgLoveMove.setVisibility(View.VISIBLE);
+            }
+            @Override
+            public void onAnimationEnd(Animator animator) {
+                imgLoveMove.setVisibility(View.GONE);
+            }
+            @Override
+            public void onAnimationCancel(Animator animator) {
+            }
+            @Override
+            public void onAnimationRepeat(Animator animator) {
+            }
+        });
+        loveAnimator.start();
+    }
+
+    private void startTextAnim() {
         ObjectAnimator textXAnimator = ObjectAnimator.ofFloat(textTime, "scaleY", 1f, 1.05f, 1f);
         textXAnimator.setDuration(500);
         ObjectAnimator textYAnimator = ObjectAnimator.ofFloat(textTime, "scaleX", 1f, 1.05f, 1f);
@@ -217,28 +260,8 @@ public class CheatActivity extends AppCompatActivity {
             public void onAnimationRepeat(Animator animator) {
             }
         });
-
-        ObjectAnimator loveAnimator = ObjectAnimator.ofFloat(imgLoveMove, "translationX", 0f, -150f);
-        loveAnimator.setDuration(500);
-        loveAnimator.addListener(new Animator.AnimatorListener() {
-            @Override
-            public void onAnimationStart(Animator animator) {
-                imgLoveMove.setVisibility(View.VISIBLE);
-            }
-            @Override
-            public void onAnimationEnd(Animator animator) {
-                imgLoveMove.setVisibility(View.GONE);
-                textTime.setTextColor(getResources().getColor(R.color.colorAccent));
-                textAnimatorSet.start();
-            }
-            @Override
-            public void onAnimationCancel(Animator animator) {
-            }
-            @Override
-            public void onAnimationRepeat(Animator animator) {
-            }
-        });
-        loveAnimator.start();
+        textTime.setTextColor(getResources().getColor(R.color.colorAccent));
+        textAnimatorSet.start();
     }
 
     private void startCoutdown() {
@@ -257,6 +280,10 @@ public class CheatActivity extends AppCompatActivity {
             allTime -= 1000;
             calendar.setTimeInMillis(allTime);
             if (allTime == 0) {
+                if (pollSubscription != null) {
+                    pollSubscription.unsubscribe();
+                }
+
                 Intent intent = new Intent(CheatActivity.this, GradeWebActivity.class);
                 StringBuilder sb = new StringBuilder("?openidA=");
                 sb.append(MySharedPre.getInstance().getOpenId())
@@ -296,4 +323,15 @@ public class CheatActivity extends AppCompatActivity {
         fragment.setUri(uri);
     }
 
+    @Override
+    public void onBackPressed() {
+        //super.onBackPressed();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        subscription.unsubscribe();
+        pollSubscription.unsubscribe();
+    }
 }

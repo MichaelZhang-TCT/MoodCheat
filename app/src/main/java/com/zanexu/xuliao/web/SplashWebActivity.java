@@ -3,6 +3,7 @@ package com.zanexu.xuliao.web;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -43,19 +44,26 @@ public class SplashWebActivity extends BaseWebActivity{
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        checkPermission(Manifest.permission.CAMERA, REQUEST_CAMERA);
-        checkPermission(Manifest.permission_group.LOCATION, REQUEST_LOCATION);
-        checkPermission(Manifest.permission_group.STORAGE, REQUEST_STORAGE);
-        //RongIM.getInstance().startConversation(this, Conversation.ConversationType.CHATROOM, "FB036A1355E73143C59AAB12E3B9F3EE", "sd");
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION},
+                    0);
+        }
+        //checkPermission(Manifest.permission.CAMERA, REQUEST_CAMERA);
+        //checkPermission(Manifest.permission_group.LOCATION, REQUEST_LOCATION);
+        //checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, REQUEST_STORAGE);
+        //checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE, 3);
 
         enginer = new QQLoginEnginer(this, new QQLoginEnginer.MyUIListener(this));
-        Log.i("load", "load " + MySharedPre.getInstance().getIsFirstStart());
         if (MySharedPre.getInstance().getIsFirstStart()) {
             MySharedPre.getInstance().setIsFirstStart(false);
             containers.addJSInterface("LoginNative", new LoginNative(enginer));
             mWebView.loadUrl("http://118.89.35.155:8080/app#/hello");
         } else if (MySharedPre.getInstance().getLogin()){
             startActivity(new Intent(SplashWebActivity.this, MainWebActivity.class));
+            finish();
         } else {
             enginer.QQLogin();
         }
@@ -64,6 +72,7 @@ public class SplashWebActivity extends BaseWebActivity{
     private void checkPermission(String permission, int requestCode) {
         if (ContextCompat.checkSelfPermission(this,
                 permission) != PackageManager.PERMISSION_GRANTED) {
+
             ActivityCompat.requestPermissions(this, new String[]{permission}, requestCode);
         }
     }

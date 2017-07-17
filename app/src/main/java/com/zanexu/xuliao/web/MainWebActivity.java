@@ -36,6 +36,16 @@ public class MainWebActivity extends BaseWebActivity{
         }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (MySharedPre.getInstance().getIsFirstLogin()) {
+            mWebView.loadUrl("http://118.89.35.155:8080/#/basic-info" + MySharedPre.getInstance().getParam());
+        } else {
+            mWebView.loadUrl("http://118.89.35.155:8080/app#/main-page?error=0&openid=" + MySharedPre.getInstance().getOpenId());
+        }
+    }
+
     private void initNativeMethod() {
         enginer = new PhotoEnginer(this);
         containers.addJSInterface("PhotoNative", new PhotoNative(enginer));

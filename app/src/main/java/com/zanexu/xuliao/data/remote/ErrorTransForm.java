@@ -36,7 +36,6 @@ public class ErrorTransForm<T> implements Observable.Transformer<T, T>{
             } else if (throwable instanceof ServiceConfigurationError){
                 errorMessage = "服务器错误";
             } else {
-                Log.i("openid", throwable + "");
                 errorMessage = "网络错误";
             }
 

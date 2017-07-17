@@ -8,16 +8,16 @@ package com.zanexu.xuliao.data.remote.im;
 
 public class PeerLikeBean {
 
+
     /**
      * status : 200
      * message : success
-     * isliked : true
+     * data : {"islike":false,"giftcount":0}
      */
 
     private int status;
     private String message;
-    private boolean isliked;
-    private int giftCount;
+    private DataEntity data;
 
     public int getStatus() {
         return status;
@@ -35,23 +35,37 @@ public class PeerLikeBean {
         this.message = message;
     }
 
-    public boolean isIsliked() {
-        return isliked;
+    public DataEntity getData() {
+        return data;
     }
 
-    public void setIsliked(boolean isliked) {
-        this.isliked = isliked;
+    public void setData(DataEntity data) {
+        this.data = data;
     }
 
-    public boolean isliked() {
-        return isliked;
-    }
+    public static class DataEntity {
+        /**
+         * islike : false
+         * giftcount : 0
+         */
 
-    public int getGiftCount() {
-        return giftCount;
-    }
+        private boolean islike;
+        private int giftcount;
 
-    public void setGiftCount(int giftCount) {
-        this.giftCount = giftCount;
+        public boolean isIslike() {
+            return islike;
+        }
+
+        public void setIslike(boolean islike) {
+            this.islike = islike;
+        }
+
+        public int getGiftcount() {
+            return giftcount;
+        }
+
+        public void setGiftcount(int giftcount) {
+            this.giftcount = giftcount;
+        }
     }
 }

@@ -70,6 +70,7 @@ public class ConnectEnginer {
             return TokenModel.getInstance().fetchToken(infos[0], infos[1], infos[2]);
         }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(o -> {
             TokenBean tokenBean = (TokenBean) o;
+            MySharedPre.getInstance().setToken(tokenBean.getToken());
             connectRongIM(activity, tokenBean.getToken());
         });
     }

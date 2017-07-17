@@ -17,7 +17,7 @@ android {
         versionProps['VERSION_CODE'] = code.toString()
         versionProps.store(versionPropsFile.newWriter(), null)
         defaultConfig {
-            applicationId "com.example.zane.homework"
+            applicationId "com.zanexu.xuliao"
             minSdkVersion 15
             targetSdkVersion 24
             versionCode code
@@ -28,18 +28,20 @@ android {
         throw new GradleException("Could not read version.properties!")
     }
 
-    defaultConfig {
-        applicationId "com.zanexu.xuliao"
-        minSdkVersion 17
-        targetSdkVersion 26
-        versionCode 1
-        versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-    }
     buildTypes {
         release {
-            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            applicationVariants.all { variant ->
+                if (variant.buildType.name.equals('release')) {
+                    variant.outputs.each { output ->
+                        def outputFile = output.outputFile
+                        if (outputFile != null && outputFile.name.endsWith('.apk')) {
+                            def fileName = "xuliao_v${defaultConfig.versionName}_${defaultConfig.versionCode}_${variant.flavorName}.apk"
+                            output.outputFile = new File(outputFile.parent, fileName)
+                        }
+                    }
+                }
+            }
         }
     }
 

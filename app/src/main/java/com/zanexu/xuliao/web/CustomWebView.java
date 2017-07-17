@@ -40,7 +40,6 @@ public class CustomWebView extends WebView{
      * custom the webview
      */
     private void init() {
-
         getSettings().setUseWideViewPort(true);
         getSettings().setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN);
         getSettings().setLoadWithOverviewMode(true);

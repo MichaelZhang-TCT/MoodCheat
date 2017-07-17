@@ -3,6 +3,7 @@ package com.zanexu.xuliao.web;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.zanexu.xuliao.Config;
 import com.zanexu.xuliao.data.remote.photo.PhotoModel;
@@ -29,10 +30,11 @@ public class LabelTalkWebActivity extends BaseWebActivity{
         talkNative = new TalkNative(new ConnectEnginer(LabelTalkWebActivity.this));
         photoEnginer = new PhotoEnginer(this);
         String param = getIntent().getStringExtra(MainWebActivity.LABEL_PRAMA);
-        mWebView.loadUrl("http://118.89.35.155:8080/#/photo-and-tag" + param);
 
         containers.addJSInterface("TalkNative", talkNative);
         containers.addJSInterface("PhotoNative", new PhotoNative(photoEnginer));
+
+        mWebView.loadUrl("http://118.89.35.155:8080/#/photo-and-tag" + param);
     }
 
     @Override

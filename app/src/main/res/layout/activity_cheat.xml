@@ -79,12 +79,23 @@
             android:orientation="horizontal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
-            <ImageView
-                android:visibility="gone"
-                android:id="@+id/img_gift_send"
-                android:src="@drawable/gift"
+            <FrameLayout
                 android:layout_width="50dp"
-                android:layout_height="50dp"/>
+                android:layout_height="50dp">
+                <ImageView
+                    android:visibility="gone"
+                    android:id="@+id/img_like_send"
+                    android:src="@drawable/love_1"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"/>
+                <ImageView
+                    android:visibility="gone"
+                    android:id="@+id/img_gift_send"
+                    android:src="@drawable/gift"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"/>
+            </FrameLayout>
+
             <TextView
                 android:visibility="gone"
                 android:layout_marginLeft="20dp"
